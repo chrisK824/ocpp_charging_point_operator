@@ -8,8 +8,9 @@ import logging
 from sql_app import crud, models, schemas, database
 from sql_app.database import SessionLocal
 
-logging.basicConfig(filename='ocpp.log',level=logging.DEBUG)
+logging.basicConfig(filename='ocpp.log', level=logging.DEBUG)
 LOGGER = logging.getLogger('ocpp')
+
 
 class ChargePointHandler(cp):
     def __init__(self, charge_point_id, websocket):
@@ -41,10 +42,10 @@ class ChargePointHandler(cp):
         if id_tag_info.get('status') == AuthorizationStatus.accepted:
             self.authorized = True
         return call_result.AuthorizePayload(id_tag_info=id_tag_info)
-    
+
     @on(Action.BootNotification)
     def on_boot_notitication(self, charge_point_vendor, charge_point_model, **kwargs):
-        LOGGER.info('Substation %s booted up',self.id)
+        LOGGER.info('Substation %s booted up', self.id)
         self.booted = True
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
@@ -54,19 +55,20 @@ class ChargePointHandler(cp):
 
     @on(Action.Heartbeat)
     def on_heartbeat(self):
-        LOGGER.info('Substation %s heartbeat sent',self.id)
+        LOGGER.info('Substation %s heartbeat sent', self.id)
         return call_result.HeartbeatPayload(
             current_time=datetime.utcnow().isoformat()
         )
 
     @on(Action.MeterValues)
     def on_meter_values(self, connector_id, meter_value):
-        LOGGER.info(f'Substation {self.id} meter values sent from connector {connector_id}:')
+        LOGGER.info(
+            f'Substation {self.id} meter values sent from connector {connector_id}:')
         LOGGER.info(f'{meter_value}')
         return call_result.MeterValuesPayload()
-    
+
     @on(Action.StartTransaction)
-    def on_start_transaction(self, connector_id, id_tag, meter_start, timestamp,**kwargs):
+    def on_start_transaction(self, connector_id, id_tag, meter_start, timestamp, **kwargs):
         id_tag_info = self.create_id_tag_info(id_tag)
         # if not self.authorized:
         #     id_tag_info['status'] = AuthorizationStatus.expired ?
@@ -90,4 +92,3 @@ class ChargePointHandler(cp):
             return call_result.StopTransactionPayload(
                 id_tag_info=id_tag_info
             )
-
