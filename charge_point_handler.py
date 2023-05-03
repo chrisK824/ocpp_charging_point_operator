@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from ocpp.routing import on
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus, TriggerMessageStatus
+from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16 import call_result
 from random import randint
 import logging
-from sql_app import crud, models, schemas, database
+from sql_app import crud
 from sql_app.database import SessionLocal
 
 logging.basicConfig(filename='ocpp.log', level=logging.DEBUG)

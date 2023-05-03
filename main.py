@@ -1,6 +1,6 @@
 import asyncio, json, logging
 import websockets
-from websockets import exceptions as exc
+from websockets.exceptions import ConnectionClosed
 from charge_point_handler import ChargePointHandler
 from typing import Optional, List
 from fastapi import Depends, FastAPI, HTTPException
@@ -26,9 +26,9 @@ async def on_connect(websocket, charge_point_id):
     active_charging_points.append(cp)
     try:
         await cp.start()
-    except websockets.exceptions.ConnectionClosed as err:
-        await cp._connection.close()
-        LOGGER.info('connection from %s closed. Info: %s', cp.id, err)
+    except ConnectionClosed as err:
+        # await cp._connection.close()
+        LOGGER.info(f'connection from {cp.id} was closed. Info: {err.rcvd}')
         active_charging_points.remove(cp)
         del cp
 
@@ -50,8 +50,9 @@ async def websocket_handler(websocket):
         interface = WebSocketInterface(websocket)
         await websocket.accept()
         await on_connect(interface, websocket.path_params['charge_point_id'])
-    print("not found" + websocket.path_params['charge_point_id'])
-    await websocket.close()
+    else:
+        print(f"Not found {websocket.path_params['charge_point_id']}")
+        await websocket.close()
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=9999)

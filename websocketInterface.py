@@ -10,7 +10,7 @@ class WebSocketInterface():
         try:
             return await self._websocket.receive_text()
         except WebSocketDisconnect as e:
-            raise ConnectionClosed(e.code, 'WebSocketInterface')
+            raise ConnectionClosed(rcvd=e.code, sent="WebSocketClosed")
 
     async def send(self, msg: str) -> None:
         await self._websocket.send_text(msg)
