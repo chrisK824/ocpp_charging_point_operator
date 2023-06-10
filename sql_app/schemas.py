@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-class idToken(BaseModel):
+class IdToken(BaseModel):
     token: str
     parent: bool
     user: str
@@ -13,7 +13,6 @@ class idToken(BaseModel):
 
     class Config:
         orm_mode = True
-
 
 
 class ChargingSubStation(BaseModel):
