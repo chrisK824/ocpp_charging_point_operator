@@ -1,12 +1,11 @@
 import asyncio, json, logging
-import websockets
 from websockets.exceptions import ConnectionClosed
 from charge_point_handler import ChargePointHandler
-from typing import Optional, List
-from fastapi import Depends, FastAPI, HTTPException
+from typing import List
+from fastapi import Depends, FastAPI
 from websocketInterface import WebSocketInterface
 import uvicorn
-from sql_app import crud, models, schemas, database
+from sql_app import db_crud, models, schemas, database
 from sqlalchemy.orm import Session
 from sql_app.database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
@@ -37,14 +36,14 @@ app = FastAPI()
 @app.get("/active_charging_points", response_model=List[schemas.ChargingSubStation])
 def get_active_charging_points(db: Session = Depends(database.get_db)):
     print([x.id for x in active_charging_points])
-    charging_points = crud.get_list_of_charging_substations(db, charging_substations_ids= [x.id for x in active_charging_points])
+    charging_points = db_crud.get_list_of_charging_substations(db, charging_substations_ids= [x.id for x in active_charging_points])
     return charging_points
 
 @app.websocket_route('/ocpp1.6/{charge_point_id:path}')
 async def websocket_handler(websocket):
     charging_point_registry = False
     db = SessionLocal()
-    charging_point_registry = crud.get_charging_substation(db, websocket.path_params['charge_point_id'])
+    charging_point_registry = db_crud.get_charging_substation(db, websocket.path_params['charge_point_id'])
     db.close()
     if charging_point_registry:
         interface = WebSocketInterface(websocket)
