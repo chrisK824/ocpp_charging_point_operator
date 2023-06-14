@@ -1,8 +1,11 @@
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
 
-# transform starlette websocket to standard websocket
+
 class WebSocketInterface():
+    """
+    Ports a Starlette websocket to a standard websocket
+    """
     def __init__(self, websocket: WebSocket):
         self._websocket = websocket
 
