@@ -6,9 +6,9 @@ from typing import List
 from fastapi import Depends, FastAPI
 from utils import WebSocketInterface
 import uvicorn
-from sql_app import db_crud, models, schemas, database
+import db_crud, models, schemas, database
 from sqlalchemy.orm import Session
-from sql_app.database import engine
+from database import engine
 from contextlib import asynccontextmanager
 
 logging.basicConfig(filename='ocpp.log',level=logging.DEBUG)

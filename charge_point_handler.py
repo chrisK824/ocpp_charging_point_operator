@@ -5,8 +5,8 @@ from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16 import call_result
 from random import randint
 import logging
-from sql_app import db_crud
-from sql_app.database import SessionLocal
+import db_crud
+from database import SessionLocal
 
 logging.basicConfig(filename='ocpp.log', level=logging.DEBUG)
 LOGGER = logging.getLogger('ocpp')
