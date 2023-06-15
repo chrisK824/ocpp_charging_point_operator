@@ -8,7 +8,8 @@ import logging
 import db_crud
 from database import SessionLocal
 
-logging.basicConfig(filename='ocpp.log', level=logging.DEBUG)
+
+logging.basicConfig(filename='ocpp.log', level=logging.INFO)
 logger = logging.getLogger('ocpp')
 
 

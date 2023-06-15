@@ -1,11 +1,10 @@
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
-import logging
 from typing import List
 from websockets.exceptions import ConnectionClosed
 from starlette.websockets import WebSocket
 from utils import WebSocketInterface
-from charge_point_handler import ChargePointHandler
+from charge_point_handler import ChargePointHandler, logger
 import db_crud
 from database import get_db
 from models import Base
@@ -14,9 +13,6 @@ from sqlalchemy.orm import Session
 from database import engine
 from contextlib import asynccontextmanager
 
-
-logging.basicConfig(filename='ocpp.log',level=logging.DEBUG)
-logger = logging.getLogger('ocpp')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
