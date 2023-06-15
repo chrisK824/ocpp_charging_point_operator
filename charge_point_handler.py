@@ -9,7 +9,7 @@ import db_crud
 from database import SessionLocal
 
 logging.basicConfig(filename='ocpp.log', level=logging.DEBUG)
-LOGGER = logging.getLogger('ocpp')
+logger = logging.getLogger('ocpp')
 
 
 class ChargePointHandler(ChargePoint):
@@ -23,9 +23,9 @@ class ChargePointHandler(ChargePoint):
     def update_id_tag_info(self, id_tag):
         id_tag_info = {}
         db = SessionLocal()
-        id_tag_stored = db_crud.get_idToken_of_charging_station(db, id_tag, self.id)
+        id_tag_stored = db_crud.get_id_token_of_charging_station(db, self.id)
         db.close()
-        if not id_tag_stored:
+        if not id_tag_stored or id_tag_stored != id_tag:
             id_tag_info['status'] = AuthorizationStatus.invalid
         else:
             if datetime.strptime(id_tag_stored.expiry_date, "%Y-%m-%dT%H:%M:%SZ") > datetime.utcnow():
@@ -33,8 +33,7 @@ class ChargePointHandler(ChargePoint):
                 id_tag_info['expiry_date'] = id_tag_stored.expiry_date
             else:
                 id_tag_info['status'] = AuthorizationStatus.expired
-            if id_tag_stored.parent_token:
-                id_tag_info['parent_id_tag'] = id_tag_stored.parent_token
+
         self.id_tag_info = id_tag_info
 
     @on(Action.Authorize)
@@ -45,8 +44,7 @@ class ChargePointHandler(ChargePoint):
         return call_result.AuthorizePayload(id_tag_info=self.id_tag_info)
 
     @on(Action.BootNotification)
-    def on_boot_notitication(self, charge_point_vendor, charge_point_model, **kwargs):
-        LOGGER.info('Substation %s booted up', self.id)
+    def on_boot_notitication(self, **kwargs):
         self.booted = True
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
@@ -56,23 +54,20 @@ class ChargePointHandler(ChargePoint):
 
     @on(Action.Heartbeat)
     def on_heartbeat(self):
-        LOGGER.info('Substation %s heartbeat sent', self.id)
         return call_result.HeartbeatPayload(
             current_time=datetime.utcnow().isoformat()
         )
 
     @on(Action.MeterValues)
-    def on_meter_values(self, connector_id, meter_value):
-        LOGGER.info(
-            f'Substation {self.id} meter values sent from connector {connector_id}:')
-        LOGGER.info(f'{meter_value}')
+    def on_meter_values(self, **kwargs):
         return call_result.MeterValuesPayload()
 
     @on(Action.StartTransaction)
-    def on_start_transaction(self, connector_id, id_tag, meter_start, timestamp, **kwargs):
-
+    def on_start_transaction(self, id_tag, **kwargs):
         if not self.transaction_id:
             self.transaction_id = randint(1, 10000)
+
+        self.update_id_tag_info(id_tag)
 
         return call_result.StartTransactionPayload(
             transaction_id=self.transaction_id,
@@ -80,7 +75,7 @@ class ChargePointHandler(ChargePoint):
         )
 
     @on(Action.StopTransaction)
-    def on_stop_transaction(self, meter_stop, timestamp, transaction_id, **kwargs):
+    def on_stop_transaction(self, transaction_id, **kwargs):
         if kwargs.get("id_tag"):
             self.update_id_tag_info(kwargs.get("id_tag"))
             if transaction_id == self.transaction_id:

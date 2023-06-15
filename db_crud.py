@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 import models, schemas
+from models import IdToken, ChargingSubStation
+from schemas import ChargingSubStationRegister, IdTokenAssign
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 import string
@@ -11,7 +13,7 @@ class DuplicateError(Exception):
 
 
 def register_charging_substation(db: Session, charging_substation_register: schemas.ChargingSubStationRegister):
-    charging_substation_to_add = models.ChargingSubStation(
+    charging_substation_to_add = ChargingSubStation(
         id=charging_substation_register.id,
         connectors_number=charging_substation_register.connectors_number,
         vendor=charging_substation_register.vendor,
@@ -33,21 +35,18 @@ def register_charging_substation(db: Session, charging_substation_register: sche
 
 
 def get_charging_substations(db: Session):
-    return list(db.query(models.ChargingSubStation).all())
+    return list(db.query(ChargingSubStation).all())
 
 
 def get_charging_substation(db: Session, charging_substation_id: str):
-    return db.query(models.ChargingSubStation).filter(
-        models.ChargingSubStation.id == charging_substation_id).first()
+    return db.query(ChargingSubStation).filter(
+        ChargingSubStation.id == charging_substation_id).first()
 
 
-def get_idToken_of_charging_station(db: Session, id_tag: str, charging_substation_id: str):
-    return db.query(models.idToken).join(
-        models.ChargingSubStation
-    ).filter(
-        models.idToken.token == id_tag
-    ).filter(
-        models.ChargingSubStation.id == charging_substation_id).first()
+def get_id_token_of_charging_station(db: Session, charging_substation_id: str):
+    return db.query(IdToken).filter(
+        IdToken.charging_substation_id == charging_substation_id
+    ).first()
 
 
 def create_id_token(db: Session, id_token_assign: schemas.IdTokenAssign):
