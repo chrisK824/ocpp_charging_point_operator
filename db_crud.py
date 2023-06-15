@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 import models, schemas
-import uuid
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
+import string
+import random
 
 
 class DuplicateError(Exception):
@@ -63,13 +64,22 @@ def create_id_token(db: Session, id_token_assign: schemas.IdTokenAssign):
     else:
         expiration_date = datetime.utcnow() + timedelta(weeks=DEFAULT_EXPIRATION_WEEKS)
 
+    letters = string.ascii_lowercase
+    token = ''.join(random.choice(letters) for i in range(20))
+
     id_token_to_add = models.IdToken(
-        token=str(uuid.uuid4()),
+        token=token,
         expiry_date=expiration_date,
         charging_substation_id=id_token_assign.charging_substation_id
     )
-    db.add(id_token_to_add)
-    db.commit()
+    try:
+        db.add(id_token_to_add)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise DuplicateError(
+            f"ID token already exists, please try again!")
+
     return id_token_to_add
 
 
