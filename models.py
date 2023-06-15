@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
+from sqlalchemy.sql import func
 
 
 class ChargingSubStation(Base):
@@ -13,11 +14,9 @@ class ChargingSubStation(Base):
     serial_number = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    register_date = Column(DateTime, default=func.now())
 
     id_token = relationship("IdToken", back_populates="charging_substation", cascade="all,delete", passive_deletes=True)
-
-    def __repr__(self):
-        return f'Charging SubStation: {self.id}'
 
 
 class IdToken(Base):
@@ -25,8 +24,8 @@ class IdToken(Base):
     token = Column(String, primary_key=True)
     expiry_date = Column(DateTime)
     charging_substation_id = Column(String, ForeignKey("charging_substations.id", ondelete="CASCADE"))
+    register_date = Column(DateTime, default=func.now())
+    last_updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     charging_substation = relationship("ChargingSubStation", back_populates="id_token")
 
-    def __repr__(self):
-        return f'idToken: {self.token}'

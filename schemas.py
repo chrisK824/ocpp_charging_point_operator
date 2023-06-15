@@ -3,10 +3,15 @@ from pydantic import BaseModel
 from datetime import datetime
 
 
-class IdToken(BaseModel):
-    token: str
-    expiry_date: datetime
+class IdTokenAssign(BaseModel):
+    expiry_date: Optional[datetime]
     charging_substation_id: str
+
+
+class IdToken(IdTokenAssign):
+    token: str
+    register_date: datetime
+    last_updated_at: datetime
 
     class Config:
         orm_mode = True
@@ -23,7 +28,7 @@ class ChargingSubStationRegister(BaseModel):
 
 
 class ChargingSubStation(ChargingSubStationRegister):
-    id_token: str
+    register_date: datetime
 
     class Config:
         orm_mode = True

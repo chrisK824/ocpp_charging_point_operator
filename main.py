@@ -3,7 +3,7 @@ from websockets.exceptions import ConnectionClosed
 from starlette.websockets import WebSocket
 from charge_point_handler import ChargePointHandler
 from typing import List
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from utils import WebSocketInterface
 import uvicorn
 import db_crud, models, schemas, database
@@ -39,9 +39,47 @@ app = FastAPI(
 )
 
 
-@app.get("/charging_points", response_model=List[schemas.ChargingSubStation])
-def get_active_charging_points(db: Session = Depends(database.get_db)):
+@app.post("/charging_points", response_model=schemas.ChargingSubStation, tags=["Charging Points"])
+def register_charging_substation(charging_substation_register: schemas.ChargingSubStationRegister,
+                                 db: Session = Depends(database.get_db)):
+    try:
+        charging_substation = db_crud.register_charging_substation(db, charging_substation_register)
+    except db_crud.DuplicateError as e:
+        raise HTTPException(status_code=403, detail=f"{e}")
+    return charging_substation
+
+
+@app.get("/charging_points", response_model=List[schemas.ChargingSubStation], tags=["Charging Points"])
+def get_charging_substations(db: Session = Depends(database.get_db)):
     return db_crud.get_charging_substations(db)
+
+
+@app.post("/id_token", response_model=schemas.IdToken, tags=["ID token"])
+def create_id_token(id_token_assign: schemas.IdTokenAssign,
+                                 db: Session = Depends(database.get_db)):
+    try:
+        id_token = db_crud.create_id_token(db, id_token_assign)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=f"{e}")
+    return id_token
+
+
+@app.get("/id_token", response_model=schemas.IdToken,  tags=["ID token"])
+def get_id_token(charging_substation_id, db: Session = Depends(database.get_db)):
+    try:
+        id_token = db_crud.get_id_token(db, charging_substation_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=f"{e}")
+    return id_token
+
+
+@app.put("/id_token/refresh", response_model=schemas.IdToken,  tags=["ID token"])
+def refresh_id_token(charging_substation_id:str, db: Session = Depends(database.get_db)):
+    try:
+        id_token = db_crud.refresh_id_token(db, charging_substation_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=f"{e}")
+    return id_token
 
 
 @app.websocket('/ocpp1.6/{charge_point_id}')
