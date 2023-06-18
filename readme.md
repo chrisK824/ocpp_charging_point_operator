@@ -28,6 +28,7 @@
     - Use URL: `ws://127.0.0.1:9999/ocpp1.6/<CHARGING_POINT_ID>`
     - Press connect to connect to the OCPP server
     - Use message section to send messages to the OCPP server
+    - Use the ID token as id_tag for payloads
     - Use payloads of `test_cp_requests_payloads.txt` to simulate messages that a charging point would send
 
 
