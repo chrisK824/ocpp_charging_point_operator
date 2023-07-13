@@ -26,12 +26,12 @@ class ChargePointHandler(ChargePoint):
         db = SessionLocal()
         id_tag_stored = db_crud.get_id_token_of_charging_station(db, self.id)
         db.close()
-        if not id_tag_stored or id_tag_stored != id_tag:
+        if not id_tag_stored or id_tag_stored.token != id_tag:
             id_tag_info['status'] = AuthorizationStatus.invalid
         else:
-            if datetime.strptime(id_tag_stored.expiry_date, "%Y-%m-%dT%H:%M:%SZ") > datetime.utcnow():
+            if id_tag_stored.expiry_date > datetime.utcnow():
                 id_tag_info['status'] = AuthorizationStatus.accepted
-                id_tag_info['expiry_date'] = id_tag_stored.expiry_date
+                id_tag_info['expiry_date'] = str(id_tag_stored.expiry_date)
             else:
                 id_tag_info['status'] = AuthorizationStatus.expired
 
