@@ -1,3 +1,4 @@
+import logging
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
 from typing import List
@@ -93,4 +94,5 @@ async def websocket_listener(websocket_obj: WebSocket, charge_point_id: str, db:
         await websocket_obj.close()
 
 if __name__ == '__main__':
+    print(f"Starting websocket server at ws://localhost:9999/ocpp1.6/")
     uvicorn.run(app, host="0.0.0.0", port=9999)

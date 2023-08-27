@@ -11,6 +11,7 @@ from database import SessionLocal
 
 logging.basicConfig(filename='ocpp.log', level=logging.INFO)
 logger = logging.getLogger('ocpp')
+logger.propagate = True
 
 
 class ChargePointHandler(ChargePoint):
